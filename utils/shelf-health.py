@@ -92,7 +92,10 @@ def shelf_identity(ses_dev):
 #   Current sensor, SAS connector, Enclosure services controller electronics
 
 TYPE_MAP = {
+    # sg_ses renamed this element type across versions ("Device slot" in
+    # older sg3_utils, "Array device slot" in 1.48+); accept both.
     "Device slot": "device_slot",
+    "Array device slot": "device_slot",
     "Power supply": "power_supply",
     "Cooling": "cooling",
     "Temperature sensor": "temp_sensor",

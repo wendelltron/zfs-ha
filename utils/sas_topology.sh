@@ -30,6 +30,18 @@ for e in /sys/class/sas_expander/*; do
 done
 
 echo "=== Disks (bay / WWN / phy / affiliation) ==="
+# Map a SAS address to its kernel block device. The sas_device class
+# "device" link does not resolve to the block device on current kernels
+# (it points back at the end_device), so match the SCSI device instead.
+sas_addr_to_sd() {
+    _want=$(echo "$1" | tr 'A-F' 'a-f')
+    for _b in /sys/block/sd*; do
+        _have=$(cat "$_b/device/sas_address" 2>/dev/null) || continue
+        [ "$(echo "$_have" | tr 'A-F' 'a-f')" = "$_want" ] && {
+            echo "${_b##*/}"; return 0; }
+    done
+    return 1
+}
 # For each SAS end device that is a disk, find its expander + phy, then query affiliation.
 for d in /sys/class/sas_device/end_device-*; do
     name=$(basename "$d")
@@ -39,7 +51,7 @@ for d in /sys/class/sas_device/end_device-*; do
     # skip enclosure services devices (no bay)
     [ -z "$bay" ] && continue
     # find the scsi disk node
-    sd=$(ls -l "$d/device" 2>/dev/null | grep -o 'sd[a-z]*$' | head -1)
+    sd=$(sas_addr_to_sd "$addr")
     [ -z "$sd" ] && continue
     wwn=$(lsblk -dn -o WWN "/dev/$sd" 2>/dev/null)
     # find which expander hosts this device: parent end_device-<h>:<expander>:<phy>

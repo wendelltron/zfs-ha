@@ -15,6 +15,8 @@ dnf install -y sg3_utils lsscsi
 dnf install -y gcc make
 curl -skL https://sg.danny.cz/sg/p/smp_utils-0.99.tgz | tar xz -C /tmp
 cd /tmp/smp_utils-0.99 && ./configure --prefix=/usr/local && make -j4 && make install
+# Debian/Ubuntu package all three:
+# apt install -y sg3-utils lsscsi smp-utils
 ```
 
 ---
@@ -160,6 +162,11 @@ Only two things are potentially vendor-specific:
    assessment (the status page) needs no changes.
 2. The expected-bypass exception described above, which depends on your
    cabling.
+3. On LSI DE6600 rebadges (Dell MD3060e, NetApp DE6600, Veritas NetBackup
+   5330 shelf), each EMM exposes its own SES node and the secondary EMM
+   reports `Bypassed A` for slots it does not route. Pass `--ses` to pick the
+   EMM that sees all slots; on a multi-shelf host, run once per enclosure.
+   LSI DE6600 support added by @malventano.
 
 ---
 
